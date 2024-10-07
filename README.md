@@ -1,1 +1,1 @@
-# Gerenciamento-de-Eventos.
+# TicketSalesManager.
