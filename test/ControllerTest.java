@@ -4,10 +4,10 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import vendaingressos.Controller;
-import vendaingressos.Evento;
-import vendaingressos.Ingresso;
-import vendaingressos.Usuario;
+import ticketSales.controllers.Controller;
+import ticketSales.models.Event;
+import ticketSales.models.Ticket;
+import ticketSales.models.User;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -15,124 +15,125 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ControllerTest {
 
     @Test
-    public void testCadastrarEventoPorAdmin() {
+    public void testRegisterEventByAdmin() {
         Controller controller = new Controller();
-        Usuario admin = controller.cadastrarUsuario("admin", "senha123", "Admin User", "00000000000", "admin@example.com", true);
+        User admin = controller.registerUser("admin", "password123", "Admin User",
+                "00000000000", "admin@example.com", true);
 
         Calendar calendar = Calendar.getInstance();
         calendar.set(2024, Calendar.SEPTEMBER, 10);
-        Date data = calendar.getTime();
+        Date date = calendar.getTime();
 
-        Evento evento = controller.cadastrarEvento(admin, "Show de Rock", "Banda XYZ", data);
+        Event event = controller.registerEvent(admin, "Rock show", "Band XYZ", date);
 
-        assertNotNull(evento);
-        assertEquals("Show de Rock", evento.getNome());
-        assertEquals("Banda XYZ", evento.getDescricao());
-        assertEquals(data, evento.getData());
+        assertNotNull(event);
+        assertEquals("Rock show", event.getName());
+        assertEquals("Band XYZ", event.getDescription());
+        assertEquals(date, event.getDate());
     }
 
     @Test
-    public void testCadastrarEventoPorUsuarioComum() {
+    public void testRegisterEventByCommonUser() {
         Controller controller = new Controller();
-        Usuario usuario = controller.cadastrarUsuario("johndoe", "senha123", "John Doe",
+        User usuario = controller.registerUser("johndoe", "password123", "John Doe",
                 "12345678901", "john.doe@example.com", false);
 
         Calendar calendar = Calendar.getInstance();
         calendar.set(2024, Calendar.SEPTEMBER, 10);
-        Date data = calendar.getTime();
+        Date date = calendar.getTime();
 
         Exception exception = assertThrows(SecurityException.class, () -> {
-            controller.cadastrarEvento(usuario, "Peça de Teatro", "Grupo ABC", data);
+            controller.registerEvent(usuario, "Peça de Teatro", "Grupo ABC", date);
         });
 
-        assertEquals("Somente administradores podem cadastrar eventos.", exception.getMessage());
+        assertEquals("Only administrators can register events.", exception.getMessage());
     }
 
     @Test
-    public void testComprarIngresso() {
+    public void testBuyTickets() {
         Controller controller = new Controller();
-        Usuario usuario = new Usuario("johndoe", "senha123", "John Doe", "12345678901",
+        User usuario = new User("johndoe", "password123", "John Doe", "12345678901",
                 "john.doe@example.com", false);
 
         Calendar calendar = Calendar.getInstance();
         calendar.set(2025, Calendar.SEPTEMBER, 10);
-        Date data = calendar.getTime();
+        Date date = calendar.getTime();
 
-        Usuario admin = controller.cadastrarUsuario("admin", "senha123", "Admin User",
+        User admin = controller.registerUser("admin", "password123", "Admin User",
                 "00000000000", "admin@example.com", true);
-        controller.cadastrarEvento(admin, "Show de Rock", "Banda XYZ", data);
-        controller.adicionarAssentoEvento("Show de Rock", "A1");
+        controller.registerEvent(admin, "Rock show", "Band XYZ", date);
+        controller.addEventSeat("Rock show", "A1");
 
-        Ingresso ingresso = controller.comprarIngresso(usuario, "Show de Rock", "A1");
+        Ticket ingresso = controller.purchaseTicket(usuario, "Rock show", "A1");
 
         assertNotNull(ingresso);
-        assertEquals("Show de Rock", ingresso.getEvento().getNome());
-        assertEquals("A1", ingresso.getAssento());
-        assertTrue(usuario.getIngressos().contains(ingresso));
+        assertEquals("Rock show", ingresso.getEvent().getName());
+        assertEquals("A1", ingresso.getSeat());
+        assertTrue(usuario.getTickets().contains(ingresso));
     }
 
     @Test
-    public void testCancelarCompra() {
+    public void testCancelPurchase() {
         Controller controller = new Controller();
-        Usuario usuario = new Usuario("johndoe", "senha123", "John Doe", "12345678901",
+        User usuario = new User("johndoe", "password123", "John Doe", "12345678901",
                 "john.doe@example.com", false);
 
         Calendar calendar = Calendar.getInstance();
         calendar.set(2025, Calendar.SEPTEMBER, 10);
-        Date data = calendar.getTime();
+        Date date = calendar.getTime();
 
-        Usuario admin = controller.cadastrarUsuario("admin", "senha123", "Admin User",
+        User admin = controller.registerUser("admin", "password123", "Admin User",
                 "00000000000", "admin@example.com", true);
-        controller.cadastrarEvento(admin, "Show de Rock", "Banda XYZ", data);
-        controller.adicionarAssentoEvento("Show de Rock", "A1");
-        Ingresso ingresso = controller.comprarIngresso(usuario, "Show de Rock", "A1");
+        controller.registerEvent(admin, "Rock show", "Band XYZ", date);
+        controller.addEventSeat("Rock show", "A1");
+        Ticket ingresso = controller.purchaseTicket(usuario, "Rock show", "A1");
 
-        boolean cancelado = controller.cancelarCompra(usuario, ingresso);
+        boolean cancelado = controller.cancelPurchase(usuario, ingresso);
         assertTrue(cancelado);
-        assertFalse(ingresso.isAtivo());
-        assertFalse(usuario.getIngressos().contains(ingresso));
+        assertFalse(ingresso.isActive());
+        assertFalse(usuario.getTickets().contains(ingresso));
     }
 
     @Test
-    public void testListarEventosDisponiveis() {
+    public void testListAvailableEvents() {
         Controller controller = new Controller();
-        Usuario admin = controller.cadastrarUsuario("admin", "senha123", "Admin User",
+        User admin = controller.registerUser("admin", "password123", "Admin User",
                 "00000000000", "admin@example.com", true);
 
         Calendar calendar1 = Calendar.getInstance();
         calendar1.set(2025, Calendar.SEPTEMBER, 10);
-        Date data1 = calendar1.getTime();
+        Date date1 = calendar1.getTime();
 
         Calendar calendar2 = Calendar.getInstance();
         calendar2.set(2025, Calendar.SEPTEMBER, 15);
-        Date data2 = calendar2.getTime();
+        Date date2 = calendar2.getTime();
 
-        controller.cadastrarEvento(admin, "Show de Rock", "Banda XYZ", data1);
-        controller.cadastrarEvento(admin, "Peça de Teatro", "Grupo ABC", data2);
+        controller.registerEvent(admin, "Rock show", "Band XYZ", date1);
+        controller.registerEvent(admin, "Peça de Teatro", "Grupo ABC", date2);
 
-        List<Evento> eventos = controller.listarEventosDisponiveis();
+        List<Event> events = controller.listAvailableEvents();
 
-        assertEquals(2, eventos.size());
+        assertEquals(2, events.size());
     }
 
     @Test
-    public void testListarIngressosComprados() {
+    public void testListPurchasedTickets() {
         Controller controller = new Controller();
-        Usuario usuario = new Usuario("johndoe", "senha123", "John Doe", "12345678901",
+        User usuario = new User("johndoe", "password123", "John Doe", "12345678901",
                 "john.doe@example.com", false);
 
         Calendar calendar = Calendar.getInstance();
         calendar.set(2024, Calendar.SEPTEMBER, 10);
-        Date data = calendar.getTime();
+        Date date = calendar.getTime();
 
-        Usuario admin = controller.cadastrarUsuario("admin", "senha123", "Admin User",
+        User admin = controller.registerUser("admin", "password123", "Admin User",
                 "00000000000", "admin@example.com", true);
-        controller.cadastrarEvento(admin, "Show de Rock", "Banda XYZ", data);
-        controller.adicionarAssentoEvento("Show de Rock", "A1");
-        controller.comprarIngresso(usuario, "Show de Rock", "A1");
+        controller.registerEvent(admin, "Rock show", "Band XYZ", date);
+        controller.addEventSeat("Rock show", "A1");
+        controller.purchaseTicket(usuario, "Rock show", "A1");
 
-        List<Ingresso> ingressos = controller.listarIngressosComprados(usuario);
+        List<Ticket> tickets = controller.listPurchasedTickets(usuario);
 
-        assertEquals(1, ingressos.size());
+        assertEquals(1, tickets.size());
     }
 }
